@@ -1,0 +1,2203 @@
+{
+	"info": {
+		"_postman_id": "7f6981f1-a12c-405f-88c2-0f7a34a0bc99",
+		"name": "Study Site",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "10080724"
+	},
+	"item": [
+		{
+			"name": "Public",
+			"item": [
+				{
+					"name": "Register/Login",
+					"item": [
+						{
+							"name": "Register User",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"let requestBody = JSON.parse(request.data);",
+											"pm.test(\"Check if 'firstName' field exists\", function () {",
+											"    pm.expect(requestBody.firstName).to.exist;",
+											"});",
+											"",
+											"pm.test(\"Check if 'lastName' field exists\", function () {",
+											"    pm.expect(requestBody.lastName).to.exist;",
+											"});",
+											"",
+											"pm.test(\"Check if 'email' field exists and is valid\", function () {",
+											"    pm.expect(requestBody.email).to.exist;",
+											"",
+											"    let emailPattern = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;",
+											"    pm.expect(emailPattern.test(requestBody.email)).to.be.true;",
+											"});",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response Test: Check status code is 201, 400, or 500\", function () {",
+											"    let statusCode = pm.response.code;",
+											"    pm.expect(statusCode).to.be.oneOf([201, 400, 500]);",
+											"});",
+											"",
+											"pm.test(\"Response Test: Check 201 response body\", function () {",
+											"    if (pm.response.code === 404 || pm.response.code === 500) {",
+											"        pm.test.skip(\"Skipping test for status code 404 or 500\");",
+											"    } else {",
+											"        let responseBody = pm.response.json();",
+											"        pm.expect(responseBody.status).to.exist;",
+											"        pm.expect(responseBody.token).to.exist.and.to.be.a('string');",
+											"        pm.environment.set(\"Token\", responseBody.token);",
+											"    }",
+											"});",
+											"",
+											"pm.test(\"Response Test: Check 400 response message\", function () {",
+											"    if (pm.response.code === 201 || pm.response.code === 500) {",
+											"        pm.test.skip(\"Skipping test for status code 201 or 500\");",
+											"    } else {",
+											"        let responseBody = pm.response.json();",
+											"        pm.expect(responseBody.message).to.exist;",
+											"    }",
+											"});",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {}
+							},
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "default"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"firstName\": \"Perry\",\n    \"lastName\": \"Craft\",\n    \"email\": \"p.craft2255@gmail.com\",\n    \"phone\": \"1234567890\",\n    \"password\": \"123456\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{URL}}/user/register",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"user",
+										"register"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Login User",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"let responseData = pm.response.json();",
+											"",
+											"pm.test('Login Status', () => {",
+											"    pm.response.to.have.status(200);",
+											"})",
+											"",
+											"pm.test(\"Token is present\", function () {",
+											"    pm.expect(responseData.token).to.exist;",
+											"    pm.expect(responseData.token).to.be.a('string');",
+											"    pm.environment.set(\"Token\", responseData.token);",
+											"});",
+											"",
+											"pm.test(\"Message is 'User logged in.'\", function () {",
+											"    pm.expect(responseData.message).to.equal(\"User logged in.\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"p.craft2255@gmail.com\",\n    \"password\": \"123123s4\",\n    \"remember\": true\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{URL}}/user/login",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"user",
+										"login"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Check Existing Email",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// Retrieve the email from the request body",
+											"let requestBody = JSON.parse(pm.request.body);",
+											"let email = requestBody.email;",
+											"",
+											"const validateEmail = () => {",
+											"  const emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;",
+											"",
+											"  if (!emailRegex.test(email)) {",
+											"    throw new Error('Invalid email format');",
+											"  }",
+											"};",
+											"",
+											"validateEmail();",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status Code Test\", function () {",
+											"  // Check the status code",
+											"  pm.expect(pm.response.code).to.be.oneOf([200, 500]);",
+											"});",
+											"",
+											"pm.test(\"Message Test\", function () {",
+											"  // Parse the response body",
+											"  const responseBody = pm.response.json();",
+											"",
+											"  // Check the presence of status message",
+											"  pm.expect(responseBody.message).to.be.a(\"string\");",
+											"});",
+											"",
+											"pm.test(\"Availability Test\", function () {",
+											"  // Parse the response body",
+											"  const responseBody = pm.response.json();",
+											"",
+											"  // Check the presence of availability",
+											"  pm.expect(responseBody.available).to.be.a(\"boolean\");",
+											"});",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"p.craft2255@gmail.com\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{URL}}/user/check-email-availability",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"user",
+										"check-email-availability"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Validate User Email",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"p.craft2255@gmail.com\",\n    \"code\": \"vdv936mb\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{URL}}/user/validate-user-email",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"user",
+										"validate-user-email"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Request Password  Reset",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"p.craft2255@gmail.com\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{URL}}/user/reset-password",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"user",
+										"reset-password"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Verify Password Reset",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"code\": \"hm5dlce8\",\n    \"password\": \"123123s4\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{URL}}/user/reset-password/:email/",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"user",
+										"reset-password",
+										":email",
+										""
+									],
+									"variable": [
+										{
+											"key": "email",
+											"value": "p.craft2255@gmail.com"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Home Page",
+					"item": [
+						{
+							"name": "Home",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// Pre-request script for the home page route",
+											"pm.sendRequest({",
+											"    url: pm.environment.get(\"URL\"),",
+											"    method: 'GET'",
+											"}, function (err, res) {",
+											"    if (err) {",
+											"        console.log(err);",
+											"        pm.request.cancel();",
+											"    } else {",
+											"        pm.collectionVariables.set('coupons', JSON.stringify(res.json().coupons.coupons));",
+											"        pm.collectionVariables.set('products', JSON.stringify(res.json().products.products));",
+											"        pm.collectionVariables.set('banners', JSON.stringify(res.json().banners.banners));",
+											"    }",
+											"});",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Test if the response status is 200, 400, 404, or 500",
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"// Test to make sure response time is within 1 second",
+											"pm.test('Response Time is within acceptable range', () => {",
+											"    const maxResponseTime = 1000;",
+											"    pm.expect(responseTime).to.be.below(maxResponseTime);",
+											"});",
+											"",
+											"",
+											"// Perform checks based on the status code",
+											"if ([200, 400, 404, 500].includes(pm.response.code)) {",
+											"    if (pm.response.code === 200) {",
+											"        // Test if the response contains the expected properties",
+											"        pm.test(\"Response body has the required properties\", function () {",
+											"            pm.response.to.have.jsonBody(\"message\");",
+											"            pm.response.to.have.jsonBody(\"coupons.status\");",
+											"            pm.response.to.have.jsonBody(\"coupons.message\");",
+											"            pm.response.to.have.jsonBody(\"coupons.coupons\");",
+											"            pm.response.to.have.jsonBody(\"products.status\");",
+											"            pm.response.to.have.jsonBody(\"products.message\");",
+											"            pm.response.to.have.jsonBody(\"products.products\");",
+											"            pm.response.to.have.jsonBody(\"banners.status\");",
+											"            pm.response.to.have.jsonBody(\"banners.message\");",
+											"            pm.response.to.have.jsonBody(\"banners.banners\");",
+											"        });",
+											"",
+											"        // Test if the response message is correct",
+											"        pm.test(\"Response message is correct\", function () {",
+											"            pm.expect(pm.response.json().message).to.eql(\"Data fetched successfully\");",
+											"        });",
+											"",
+											"        // Skip tests if any of the arrays is empty",
+											"        if (pm.response.json().coupons.status !== 200) {",
+											"            pm.test.skip(\"Coupons status is not 200\", function () {",
+											"                pm.skip(`Skipping test: Coupons status is ${pm.response.json().coupons.status}`);",
+											"            });",
+											"        } else if (pm.response.json().coupons.coupons.length === 0) {",
+											"            pm.test.skip(\"Coupons array is empty\", function () {",
+											"                pm.skip(\"Skipping test: No coupons found.\");",
+											"            });",
+											"        } else {",
+											"            // Test if the coupons array is not empty",
+											"            pm.test(\"Coupons array is not empty\", function () {",
+											"                pm.expect(pm.response.json().coupons.coupons.length).to.be.above(0);",
+											"            });",
+											"        }",
+											"",
+											"        if (pm.response.json().products.status !== 200) {",
+											"            pm.test.skip(\"Products status is not 200\", function () {",
+											"                pm.skip(`Skipping test: Products status is ${pm.response.json().products.status}`);",
+											"            });",
+											"        } else if (pm.response.json().products.products.length === 0) {",
+											"            pm.test.skip(\"Products array is empty\", function () {",
+											"                pm.skip(\"Skipping test: No products found.\");",
+											"            });",
+											"        } else {",
+											"            // Test if the products array is not empty",
+											"            pm.test(\"Products array is not empty\", function () {",
+											"                pm.expect(pm.response.json().products.products.length).to.be.above(0);",
+											"            });",
+											"        }",
+											"",
+											"        if (pm.response.json().banners.status !== 200) {",
+											"            pm.test.skip(\"Banners status is not 200\", function () {",
+											"                pm.skip(`Skipping test: Banners status is ${pm.response.json().banners.status}`);",
+											"            });",
+											"        } else if (pm.response.json().banners.banners.length === 0) {",
+											"            pm.test.skip(\"Banners array is empty\", function () {",
+											"                pm.skip(\"Skipping test: No banners found.\");",
+											"            });",
+											"        } else {",
+											"            // Test if the banners array is not empty",
+											"            pm.test(\"Banners array is not empty\", function () {",
+											"                pm.expect(pm.response.json().banners.banners.length).to.be.above(0);",
+											"            });",
+											"        }",
+											"    } else {",
+											"        // Log the response message for 400, 404, and 500 status codes",
+											"        console.log(pm.response.json().message);",
+											"    }",
+											"}",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"description": "JSON Type",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{URL}}/",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										""
+									]
+								},
+								"description": "Get home page information\n\nCoupons: \\[{}\\]\n\nProducts: \\[{}\\]\n\nBanners: \\[{}\\]"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Products",
+					"item": [
+						{
+							"name": "Get Products w/ query",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{URL}}/products",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"products"
+									],
+									"query": [
+										{
+											"key": "size",
+											"value": "small",
+											"disabled": true
+										},
+										{
+											"key": "searchQuery",
+											"value": "This",
+											"disabled": true
+										},
+										{
+											"key": "minRating",
+											"value": "4",
+											"disabled": true
+										},
+										{
+											"key": "category",
+											"value": "sample",
+											"disabled": true
+										},
+										{
+											"key": "tags",
+											"value": "Good",
+											"disabled": true
+										},
+										{
+											"key": "prodId",
+											"value": "64aafbf34184711331e824bd",
+											"disabled": true
+										},
+										{
+											"key": "page",
+											"value": "2",
+											"disabled": true
+										},
+										{
+											"key": "name",
+											"value": "Example",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Reviews",
+					"item": [
+						{
+							"name": "Get All Reviews w/ query",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{URL}}/reviews",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"reviews"
+									],
+									"query": [
+										{
+											"key": "userId",
+											"value": "64a9dd12836aa4ecac794d84",
+											"disabled": true
+										},
+										{
+											"key": "productId",
+											"value": "64a9f34ce26b8c5275312ff0",
+											"disabled": true
+										},
+										{
+											"key": "rating",
+											"value": "8",
+											"disabled": true
+										},
+										{
+											"key": "verified",
+											"value": "false",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Services",
+					"item": [
+						{
+							"name": "Get All Services w/query",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{URL}}/services?page=1",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"services"
+									],
+									"query": [
+										{
+											"key": "name",
+											"value": "dummy",
+											"description": "Name of service",
+											"disabled": true
+										},
+										{
+											"key": "category",
+											"value": "facial",
+											"description": "Category of service",
+											"disabled": true
+										},
+										{
+											"key": "description",
+											"value": "this sdis",
+											"description": "Description of service",
+											"disabled": true
+										},
+										{
+											"key": "serviceId",
+											"value": "64aa126f271422b56549641c",
+											"description": "ServiceId",
+											"disabled": true
+										},
+										{
+											"key": "duration",
+											"value": "60",
+											"description": "Duration of service",
+											"disabled": true
+										},
+										{
+											"key": "isFeatured",
+											"value": "false",
+											"description": "True/False",
+											"disabled": true
+										},
+										{
+											"key": "rating",
+											"value": "0",
+											"description": "Min rating",
+											"disabled": true
+										},
+										{
+											"key": "page",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			],
+			"description": "# Public Routes for Ecomm Study Site"
+		},
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Admin",
+					"item": [
+						{
+							"name": "Products",
+							"item": [
+								{
+									"name": "Update Product",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{Token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "PUT",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"name\": \"Example Product\",\n  \"size\": [\"large\", \"small\"],\n  \"description\": \"This is an example product\",\n  \"usage\": \"Use as directed\",\n  \"stockStatus\": \"in stock\",\n  \"brand\": \"Example Brand\",\n  \"images\": [\n    {\n      \"defaultImage\": \"612e0f9f12c556001f4d9dbd\",\n      \"order\": 1\n    },\n    {\n      \"defaultImage\": \"612e0f9f12c556001f4d9dbe\",\n      \"order\": 2\n    }\n  ],\n  \"published\": true,\n  \"category\": \"Example Category\",\n  \"ingredients\": [\"Ingredient 1\", \"Ingredient 2\"],\n  \"benefits\": [\"Benefit 1\", \"Benefit 2\"],\n  \"skinType\": [\"Skin Type 1\", \"Skin Type 2\"],\n  \"price\": 9.99,\n  \"salesPrice\": 7.99,\n  \"saleStartDate\": \"2023-10-01\",\n  \"saleEndDate\": \"2023-10-31\",\n  \"step\": 3,\n  \"tags\": [\"Tag 1\", \"Tag 2\"]\n}\n",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{URL}}/admin/products/:productId",
+											"host": [
+												"{{URL}}"
+											],
+											"path": [
+												"admin",
+												"products",
+												":productId"
+											],
+											"variable": [
+												{
+													"key": "productId",
+													"value": "64aafab375c45561a80d6aab"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Create Product",
+									"event": [
+										{
+											"listen": "prerequest",
+											"script": {
+												"exec": [
+													"// Validate request fields - name",
+													"pm.test(\"Request field 'name' is correct\", function() {",
+													"    let requestData = JSON.parse(request.data);",
+													"    pm.expect(requestData).to.have.property('name').that.is.a('string');",
+													"});",
+													"",
+													"// Validate request fields - size",
+													"pm.test(\"Request field 'size' is correct\", function() {",
+													"    let requestData = JSON.parse(request.data);",
+													"    pm.expect(requestData).to.have.property('size').that.is.a('string');",
+													"});",
+													"",
+													"// Validate request fields - description",
+													"pm.test(\"Request field 'description' is correct\", function() {",
+													"    let requestData = JSON.parse(request.data);",
+													"    pm.expect(requestData).to.have.property('description').that.is.a('string');",
+													"});",
+													"",
+													"// Validate request fields - usage",
+													"pm.test(\"Request field 'usage' is correct\", function() {",
+													"    let requestData = JSON.parse(request.data);",
+													"    pm.expect(requestData).to.have.property('usage').that.is.a('string');",
+													"});",
+													"",
+													"// Validate request fields - stockStatus",
+													"pm.test(\"Request field 'stockStatus' is correct\", function() {",
+													"    let requestData = JSON.parse(request.data);",
+													"    pm.expect(requestData).to.have.property('stockStatus').that.is.oneOf(['in stock', 'out of stock', 'backorder', 'discontinued']);",
+													"});",
+													"",
+													"// Validate request fields - brand",
+													"pm.test(\"Request field 'brand' is correct\", function() {",
+													"    let requestData = JSON.parse(request.data);",
+													"    pm.expect(requestData).to.have.property('brand').that.is.a('string');",
+													"});",
+													"",
+													"// Validate request fields - images",
+													"pm.test(\"Request field 'images' is correct\", function() {",
+													"    let requestData = JSON.parse(request.data);",
+													"    pm.expect(requestData).to.have.property('images').that.is.an('array');",
+													"});",
+													"",
+													"// Validate request fields - published",
+													"pm.test(\"Request field 'published' is correct\", function() {",
+													"    let requestData = JSON.parse(request.data);",
+													"    pm.expect(requestData).to.have.property('published').that.is.a('boolean');",
+													"});",
+													"",
+													"// Validate request fields - category",
+													"pm.test(\"Request field 'category' is correct\", function() {",
+													"    let requestData = JSON.parse(request.data);",
+													"    pm.expect(requestData).to.have.property('category').that.is.a('string');",
+													"});",
+													"",
+													"// Validate request fields - ingredients",
+													"pm.test(\"Request field 'ingredients' is correct\", function() {",
+													"    let requestData = JSON.parse(request.data);",
+													"    pm.expect(requestData).to.have.property('ingredients').that.is.an('array').that.satisfies(function(ingredients) {",
+													"        return ingredients.every(function(ingredient) {",
+													"            return typeof ingredient === 'string';",
+													"        });",
+													"    });",
+													"});",
+													"",
+													"// Validate request fields - benefits",
+													"pm.test(\"Request field 'benefits' is correct\", function() {",
+													"    let requestData = JSON.parse(request.data);",
+													"    pm.expect(requestData).to.have.property('benefits').that.is.an('array').that.satisfies(function(benefits) {",
+													"        return benefits.every(function(benefit) {",
+													"            return typeof benefit === 'string';",
+													"        });",
+													"    });",
+													"});",
+													"",
+													"",
+													"// Validate request fields - skinType",
+													"pm.test(\"Request field 'skinType' is correct\", function() {",
+													"    let requestData = JSON.parse(request.data);",
+													"    pm.expect(requestData).to.have.property('skinType').that.is.an('array').that.satisfies(function(skinType) {",
+													"        return skinType.every(function(skinType) {",
+													"            return typeof skinType === 'string';",
+													"        });",
+													"    });",
+													"});",
+													"",
+													"// Validate request fields - price",
+													"pm.test(\"Request field 'price' is correct\", function() {",
+													"    let requestData = JSON.parse(request.data);",
+													"    pm.expect(requestData).to.have.property('price').that.is.a('number');",
+													"});",
+													"",
+													"// Validate request fields - salesPrice",
+													"pm.test(\"Request field 'salesPrice' is correct\", function() {",
+													"    let requestData = JSON.parse(request.data);",
+													"    pm.expect(requestData).to.have.property('salesPrice').that.is.a('number');",
+													"});",
+													"",
+													"// Validate request fields - saleStartDate",
+													"pm.test(\"Request field 'saleStartDate' is correct\", function() {",
+													"    let requestData = JSON.parse(request.data);",
+													"    pm.expect(requestData).to.have.property('saleStartDate').that.is.a('string').and.satisfy(function(date) {",
+													"        return !isNaN(Date.parse(date));",
+													"    });",
+													"});",
+													"",
+													"// Validate request fields - saleEndDate",
+													"pm.test(\"Request field 'saleEndDate' is correct\", function() {",
+													"    let requestData = JSON.parse(request.data);",
+													"    pm.expect(requestData).to.have.property('saleEndDate').that.is.a('string').and.satisfy(function(date) {",
+													"        return !isNaN(Date.parse(date));",
+													"    });",
+													"});",
+													"",
+													"// Validate request fields - step",
+													"pm.test(\"Request field 'step' is correct\", function() {",
+													"    let requestData = JSON.parse(request.data);",
+													"    pm.expect(requestData).to.have.property('step').that.is.a('number');",
+													"});",
+													"",
+													"// Validate request fields - tags",
+													"pm.test(\"Request field 'tags' is correct\", function() {",
+													"    let requestData = JSON.parse(request.data);",
+													"    pm.expect(requestData).to.have.property('tags').that.is.an('array').and.contains.satisfy(function(tag) {",
+													"        return typeof tag === 'string';",
+													"    });",
+													"});",
+													"",
+													"// Validate request fields - reviews",
+													"pm.test(\"Request field 'reviews' is correct\", function() {",
+													"    let requestData = JSON.parse(request.data);",
+													"    pm.expect(requestData).to.have.property('reviews').that.is.an('array').and.contains.satisfy(function(review) {",
+													"        return typeof review === 'object';",
+													"    });",
+													"});",
+													""
+												],
+												"type": "text/javascript"
+											}
+										},
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Response fields are correct\", function() {",
+													"    let responseBody = pm.response.json();",
+													"",
+													"    pm.expect(responseBody).to.have.property('status').that.equals(201);",
+													"    pm.expect(responseBody).to.have.property('message').that.equals(\"Product created successfully.\");",
+													"    pm.expect(responseBody).to.have.property('product').that.is.an('object');",
+													"",
+													"    let product = responseBody.product;",
+													"    pm.expect(product).to.have.property('name').that.is.a('string');",
+													"    pm.expect(product).to.have.property('size').that.is.a('string');",
+													"});"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{Token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"name\": \"Example Product\",\n  \"size\": \"small\",\n  \"description\": \"This is an example product\",\n  \"usage\": \"Use as directed\",\n  \"stockStatus\": \"in stock\",\n  \"brand\": \"Example Brand\",\n  \"images\": [\n    {\n      \"defaultImage\": \"612e0f9f12c556001f4d9dbd\",\n      \"order\": 1\n    },\n    {\n      \"defaultImage\": \"612e0f9f12c556001f4d9dbe\",\n      \"order\": 2\n    }\n  ],\n  \"published\": true,\n  \"category\": \"Example Category\",\n  \"ingredients\": [\"Ingredient 1\", \"Ingredient 2\"],\n  \"benefits\": [\"Benefit 1\", \"Benefit 2\"],\n  \"skinType\": [\"Skin Type 1\", \"Skin Type 2\"],\n  \"price\": 9.99,\n  \"salesPrice\": 7.99,\n  \"saleStartDate\": \"2023-10-01\",\n  \"saleEndDate\": \"2023-10-31\",\n  \"step\": 3,\n  \"tags\": [\"Tag 1\", \"Tag 2\"],\n  \"reviews\": []\n}\n",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{URL}}/admin/products",
+											"host": [
+												"{{URL}}"
+											],
+											"path": [
+												"admin",
+												"products"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Delete Product",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{Token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "DELETE",
+										"header": [],
+										"url": {
+											"raw": "{{URL}}/admin/products/:productId",
+											"host": [
+												"{{URL}}"
+											],
+											"path": [
+												"admin",
+												"products",
+												":productId"
+											],
+											"variable": [
+												{
+													"key": "productId",
+													"value": "64aafab375c45561a80d6aab"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Admin Get Products w/wo query",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{Token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{URL}}/admin/products",
+											"host": [
+												"{{URL}}"
+											],
+											"path": [
+												"admin",
+												"products"
+											],
+											"query": [
+												{
+													"key": "size",
+													"value": "tiny",
+													"disabled": true
+												},
+												{
+													"key": "searchQuery",
+													"value": "help",
+													"disabled": true
+												},
+												{
+													"key": "minRating",
+													"value": "4",
+													"disabled": true
+												},
+												{
+													"key": "category",
+													"value": "sample",
+													"disabled": true
+												},
+												{
+													"key": "tags",
+													"value": "tag",
+													"disabled": true
+												},
+												{
+													"key": "prodId",
+													"value": "64a9f34ce26b8c5275312ff0",
+													"disabled": true
+												}
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "Coupons",
+							"item": [
+								{
+									"name": "Create Coupon",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{Token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"name\": \"Summer Sale 2\",\n  \"value\": 10,\n  \"discountType\": \"percentage\",\n  \"startDate\": \"2023-06-15\",\n  \"endDate\": \"2023-07-30\",\n  \"code\": \"SUMMER2023\",\n  \"additionalData\": {\n    \"description\": \"Get 10% off on all items during the Summer Sale\"\n  }\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{URL}}/admin/coupons",
+											"host": [
+												"{{URL}}"
+											],
+											"path": [
+												"admin",
+												"coupons"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Update Coupon",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{Token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "PUT",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"name\": \"Summer Sale Updated 2\",\n  \"value\": 20,\n  \"discountType\": \"percentage\",\n  \"startDate\": \"2023-06-15\",\n  \"endDate\": \"2023-07-30\",\n  \"code\": \"SUMMER2023\",\n  \"additionalData\": {\n    \"description\": \"Get 20% off on all items during the Summer Sale\"\n  }\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{URL}}/admin/coupons/:couponId",
+											"host": [
+												"{{URL}}"
+											],
+											"path": [
+												"admin",
+												"coupons",
+												":couponId"
+											],
+											"variable": [
+												{
+													"key": "couponId",
+													"value": "64ab099ac5716418c5349107"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Delete Coupon",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{Token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "DELETE",
+										"header": [],
+										"url": {
+											"raw": "{{URL}}/admin/coupons/:couponId",
+											"host": [
+												"{{URL}}"
+											],
+											"path": [
+												"admin",
+												"coupons",
+												":couponId"
+											],
+											"variable": [
+												{
+													"key": "couponId",
+													"value": "64ab099ac5716418c5349107"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Admin Get Coupons w/ query",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{Token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{URL}}/admin/coupons",
+											"host": [
+												"{{URL}}"
+											],
+											"path": [
+												"admin",
+												"coupons"
+											],
+											"query": [
+												{
+													"key": "name",
+													"value": "tester",
+													"disabled": true
+												},
+												{
+													"key": "startDate",
+													"value": "08-03-23",
+													"disabled": true
+												},
+												{
+													"key": "endDate",
+													"value": "09-03-23",
+													"disabled": true
+												},
+												{
+													"key": "code",
+													"value": "80085",
+													"disabled": true
+												},
+												{
+													"key": "couponId",
+													"value": "64ab0a12c5716418c5349115",
+													"disabled": true
+												}
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "Banners",
+							"item": [
+								{
+									"name": "Create Banner",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{Token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"image\": {\n    \"url\": \"https://example.com/images/banner.jpg\",\n    \"public_id\": \"abc123\",\n    \"folder\": \"banners\",\n    \"alt\": \"Banner Image\",\n    \"caption\": \"Special Sale Banner\"\n  },\n  \"name\": \"Summer Sale Test 4\",\n  \"text\": \"Test Sale\",\n  \"startDate\": \"2023-07-09T00:00:00Z\",\n  \"endDate\": \"2023-08-12T23:59:59Z\",\n  \"link\": \"https://example.com/special-sale\",\n  \"category\": \"promotions\",\n  \"pages\": [\"home\", \"product\"],\n  \"placement\": \"top\",\n  \"additionalData\": {\n    \"discountPercent\": 20,\n    \"code\": \"SUMMER20\"\n  }\n}\n",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{URL}}/admin/banners",
+											"host": [
+												"{{URL}}"
+											],
+											"path": [
+												"admin",
+												"banners"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Update Banner",
+									"request": {
+										"method": "PUT",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"image\": {\n    \"url\": \"https://example.com/images/banner.jpg\",\n    \"public_id\": \"abc123\",\n    \"folder\": \"banners\",\n    \"alt\": \"Banner Image\",\n    \"caption\": \"Special Sale Banner\"\n  },\n  \"text\": \"Special Sale for the 99 2000!\",\n  \"startDate\": \"2023-07-08T00:00:00Z\",\n  \"endDate\": \"2023-07-23T23:59:59Z\",\n  \"link\": \"https://example.com/special-sale\",\n  \"category\": \"promotions\",\n  \"pages\": [\"home\", \"product\"],\n  \"placement\": \"top\",\n  \"additionalData\": {\n    \"discountPercent\": 40,\n    \"code\": \"SUMMER40\"\n  },\n  \"userPrivate\": false\n}\n",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{URL}}/admin/banners/:bannerId",
+											"host": [
+												"{{URL}}"
+											],
+											"path": [
+												"admin",
+												"banners",
+												":bannerId"
+											],
+											"variable": [
+												{
+													"key": "bannerId",
+													"value": "64ab122e6661979227cf3199"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Delete Banner",
+									"request": {
+										"method": "DELETE",
+										"header": [],
+										"url": {
+											"raw": "{{URL}}/admin/banners/:bannerId",
+											"host": [
+												"{{URL}}"
+											],
+											"path": [
+												"admin",
+												"banners",
+												":bannerId"
+											],
+											"variable": [
+												{
+													"key": "bannerId",
+													"value": "64ab122e6661979227cf3199"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Admin Get Banners w/ query",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{Token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{URL}}/admin/banners?userPrivate=true",
+											"host": [
+												"{{URL}}"
+											],
+											"path": [
+												"",
+												"admin",
+												"banners"
+											],
+											"query": [
+												{
+													"key": "text",
+													"value": "something",
+													"disabled": true
+												},
+												{
+													"key": "startDate",
+													"value": "08-23-23",
+													"disabled": true
+												},
+												{
+													"key": "endDate",
+													"value": "05-27-23",
+													"disabled": true
+												},
+												{
+													"key": "category",
+													"value": "promotions",
+													"disabled": true
+												},
+												{
+													"key": "userPrivate",
+													"value": "true"
+												}
+											]
+										}
+									},
+									"response": []
+								}
+							],
+							"auth": {
+								"type": "bearer",
+								"bearer": [
+									{
+										"key": "token",
+										"value": "{{Token}}",
+										"type": "string"
+									}
+								]
+							},
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											""
+										]
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											""
+										]
+									}
+								}
+							]
+						},
+						{
+							"name": "Services",
+							"item": [
+								{
+									"name": "Create Service",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{Token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"name\": \"Dummy Service\",\n  \"category\": \"facial\",\n  \"description\": \"This sdis a dummy service description.\",\n  \"duration\": 60,\n  \"price\": 50,\n  \"isFeatured\": true\n}\n",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{URL}}/admin/services",
+											"host": [
+												"{{URL}}"
+											],
+											"path": [
+												"admin",
+												"services"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Update Service",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{Token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "PUT",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"name\": \"Dummy Service\",\n  \"category\": \"facial\",\n  \"description\": \"This is a dummy service updated.\",\n  \"duration\": 60,\n  \"price\": 50,\n  \"reviews\": [],\n  \"rating\": 4.5,\n  \"isFeatured\": true\n}\n",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{URL}}/admin/services/:serviceId",
+											"host": [
+												"{{URL}}"
+											],
+											"path": [
+												"admin",
+												"services",
+												":serviceId"
+											],
+											"variable": [
+												{
+													"key": "serviceId",
+													"value": "64ab1bef55d3ad0ac55f5341"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Delete Service",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{Token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "DELETE",
+										"header": [],
+										"url": {
+											"raw": "{{URL}}/admin/services/64ab1bef55d3ad0ac55f5341",
+											"host": [
+												"{{URL}}"
+											],
+											"path": [
+												"admin",
+												"services",
+												"64ab1bef55d3ad0ac55f5341"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Admin Get All Services w/wo Query",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{Token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{URL}}/admin/services",
+											"host": [
+												"{{URL}}"
+											],
+											"path": [
+												"admin",
+												"services"
+											],
+											"query": [
+												{
+													"key": "name",
+													"value": "something",
+													"disabled": true
+												},
+												{
+													"key": "category",
+													"value": "facial",
+													"disabled": true
+												},
+												{
+													"key": "isFeatured",
+													"value": "false",
+													"disabled": true
+												},
+												{
+													"key": "rating",
+													"value": "2",
+													"disabled": true
+												},
+												{
+													"key": "duration",
+													"value": "60",
+													"disabled": true
+												},
+												{
+													"key": "serviceId",
+													"value": "64ab1bef55d3ad0ac55f5341",
+													"disabled": true
+												}
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "User",
+					"item": [
+						{
+							"name": "Subscriptions v2 Ready",
+							"item": [
+								{
+									"name": "Add Product to User Subscription",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{Token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"quantity\":6,\n    \"frequency\": \"monthly\",\n    \"startDate\": \"2023-07-11\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{URL}}/user/subscriptions/product/:productId",
+											"host": [
+												"{{URL}}"
+											],
+											"path": [
+												"user",
+												"subscriptions",
+												"product",
+												":productId"
+											],
+											"variable": [
+												{
+													"key": "productId",
+													"value": "64aafbf34184711331e824bd",
+													"description": "Product Id to add to users pending subscriptions"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Update User Subscription",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{Token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "PUT",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"quantity\": 2,\n    \"frequency\": \"bimonthly\",\n    \"status\": \"pending\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{URL}}/user/subscriptions/:subscriptionId/",
+											"host": [
+												"{{URL}}"
+											],
+											"path": [
+												"user",
+												"subscriptions",
+												":subscriptionId",
+												""
+											],
+											"variable": [
+												{
+													"key": "subscriptionId",
+													"value": "64acb97f56c634ab948dc1c7",
+													"description": "Users Subscription Id to update"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Get Users Subscriptions",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{Token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{URL}}/user/subscriptions",
+											"host": [
+												"{{URL}}"
+											],
+											"path": [
+												"user",
+												"subscriptions"
+											],
+											"query": [
+												{
+													"key": "product",
+													"value": "64a9f34ce26b8c5275312ff0",
+													"disabled": true
+												},
+												{
+													"key": "service",
+													"value": "",
+													"disabled": true
+												},
+												{
+													"key": "status",
+													"value": "canceled",
+													"disabled": true
+												},
+												{
+													"key": "lastCycleDate",
+													"value": "2023-07-11T00:00:00.000Z",
+													"disabled": true
+												},
+												{
+													"key": "userId",
+													"value": "64a9dd12836aa4ecac794d84",
+													"disabled": true
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Delete Users Pending Subscription",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{Token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "DELETE",
+										"header": [],
+										"url": {
+											"raw": "{{URL}}/user/subscriptions/:subscriptionId",
+											"host": [
+												"{{URL}}"
+											],
+											"path": [
+												"user",
+												"subscriptions",
+												":subscriptionId"
+											],
+											"variable": [
+												{
+													"key": "subscriptionId",
+													"value": "64acb97f56c634ab948dc1c7"
+												}
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "Favorites v2 Ready",
+							"item": [
+								{
+									"name": "Add Favorite Product v2 Ready",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{Token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "PUT",
+										"header": [],
+										"url": {
+											"raw": "{{URL}}/user/favorites/products/:productId",
+											"host": [
+												"{{URL}}"
+											],
+											"path": [
+												"user",
+												"favorites",
+												"products",
+												":productId"
+											],
+											"variable": [
+												{
+													"key": "productId",
+													"value": "64aafbf34184711331e824bd"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Add Favorite Service",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{Token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "PUT",
+										"header": [],
+										"url": {
+											"raw": "{{URL}}/user/favorites/services/:serviceId",
+											"host": [
+												"{{URL}}"
+											],
+											"path": [
+												"user",
+												"favorites",
+												"services",
+												":serviceId"
+											],
+											"variable": [
+												{
+													"key": "serviceId",
+													"value": "64ab3646610e7f1f490026c8"
+												}
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "Reviews v2 Ready",
+							"item": [
+								{
+									"name": "Add Product Review",
+									"event": [
+										{
+											"listen": "prerequest",
+											"script": {
+												"exec": [
+													"pm.test(\"Check request fields\", function() {",
+													"    // Parse the request body as JSON",
+													"    var requestBody = JSON.parse(request.data);",
+													"",
+													"    // Check if the 'comment' field exists and is not empty",
+													"    pm.expect(requestBody.comment).to.exist;",
+													"    pm.expect(requestBody.comment).to.not.be.empty;",
+													"",
+													"    // Check if the 'rating' field exists and is a number",
+													"    pm.expect(requestBody.rating).to.exist;",
+													"    pm.expect(requestBody.rating).to.be.a('number');",
+													"});"
+												],
+												"type": "text/javascript"
+											}
+										},
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"let responseData = pm.response.json();",
+													"",
+													"pm.test('Add Review Status', () => {",
+													"    pm.response.to.have.status(200);",
+													"});",
+													"",
+													"pm.test(\"Review Added Successfully\", function () {",
+													"    pm.expect(responseData.message).to.equal(\"Review added successfully.\");",
+													"});"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{Token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "Auth",
+												"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY0N2Q2ZTNiNTkyMmUzZDExYTY4NDUxNCIsImVtYWlsIjoibGpjcmFmdDEyQGdtYWlsLmNvbSIsImlhdCI6MTY4NTk0MTgyMCwiZXhwIjoxNjg2MDI4MjIwfQ.7u6fAJCCWvbYOEZFYY8W9G0kTTy8o4imySb05Qs9_nk",
+												"type": "default"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"comment\": \"Something about this product is so great\",\n    \"rating\": 5\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{URL}}/user/reviews/products/:productId/",
+											"host": [
+												"{{URL}}"
+											],
+											"path": [
+												"user",
+												"reviews",
+												"products",
+												":productId",
+												""
+											],
+											"variable": [
+												{
+													"key": "productId",
+													"value": "64ab3e92496a508de9f0d389"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Delete Product Review",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{Token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "DELETE",
+										"header": [],
+										"url": {
+											"raw": "{{URL}}/user/reviews/:reviewId/",
+											"host": [
+												"{{URL}}"
+											],
+											"path": [
+												"user",
+												"reviews",
+												":reviewId",
+												""
+											],
+											"variable": [
+												{
+													"key": "reviewId",
+													"value": "64ab6ee52fe7387a514a5e8e"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Update Product Review",
+									"event": [
+										{
+											"listen": "prerequest",
+											"script": {
+												"exec": [
+													"pm.test(\"Check request fields\", function() {",
+													"    // Parse the request body as JSON",
+													"    var requestBody = JSON.parse(request.data);",
+													"",
+													"    // Check if the 'comment' field exists and is not empty",
+													"    pm.expect(requestBody.comment).to.exist;",
+													"    pm.expect(requestBody.comment).to.not.be.empty;",
+													"",
+													"    // Check if the 'rating' field exists and is a number",
+													"    pm.expect(requestBody.rating).to.exist;",
+													"    pm.expect(requestBody.rating).to.be.a('number');",
+													"});"
+												],
+												"type": "text/javascript"
+											}
+										},
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"let responseData = pm.response.json();",
+													"",
+													"pm.test('Add Review Status', () => {",
+													"    pm.response.to.have.status(200);",
+													"});",
+													"",
+													"pm.test(\"Review Added Successfully\", function () {",
+													"    pm.expect(responseData.message).to.equal(\"Review added successfully.\");",
+													"});"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{Token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "PUT",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"comment\": \"This review was updated\",\n    \"rating\": 2\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{URL}}/user/reviews/:reviewId/",
+											"host": [
+												"{{URL}}"
+											],
+											"path": [
+												"user",
+												"reviews",
+												":reviewId",
+												""
+											],
+											"variable": [
+												{
+													"key": "reviewId",
+													"value": "64ab644ff1c618c1acd13f9b"
+												}
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "Get User Dashboard Info",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"let responseData = pm.response.json();",
+											"",
+											"// Check status code is 200 or 400",
+											"pm.test(\"Response Test: Check status code is 201 or 400\", function () {",
+											"    let statusCode = pm.response.code;",
+											"    pm.expect(statusCode).to.be.oneOf([200, 400]);",
+											"});",
+											"",
+											"// Test to make sure response time is within 1 second",
+											"pm.test('Response Time is within acceptable range', () => {",
+											"    const maxResponseTime = 1000;",
+											"    pm.expect(responseTime).to.be.below(maxResponseTime);",
+											"});",
+											"",
+											"pm.test(\"Resonse Test: Recieved data is an object\", function () {",
+											"    pm.expect(responseData).that.is.an('object');",
+											"});",
+											"",
+											"pm.test(\"Resonse Test: User is an object\", function () {",
+											"    pm.expect(responseData.user).that.is.an('object');",
+											"});",
+											"",
+											"pm.test(\"Resonse Test: User is fetched\", function () {",
+											"    pm.expect(responseData.user.status).to.equal(200)",
+											"});",
+											"",
+											"pm.test(\"Resonse Test: User is fetched\", function () {",
+											"    pm.expect(responseData.reviews.status).to.equal(200)",
+											"});",
+											"",
+											"pm.test(\"Resonse Test: Reviws is an object\", function () {",
+											"    pm.expect(responseData.reviews).that.is.an('object');",
+											"});",
+											"",
+											"pm.test(\"Resonse Test: User Reviews is fetched\", function () {",
+											"    pm.expect(responseData.reviews.status).to.equal(200)",
+											"});",
+											"",
+											"pm.test(\"Resonse Test: User Favorites is an object\", function () {",
+											"    pm.expect(responseData.favorites).that.is.an('object');",
+											"});",
+											"",
+											"pm.test(\"Resonse Test: User Favorites is an fetched\", function () {",
+											"    pm.expect(responseData.favorites.status).to.equal(200);",
+											"});",
+											"",
+											"pm.test(\"Resonse Test: User Reviews is an object\", function () {",
+											"    pm.expect(responseData.reviews).that.is.an('object');",
+											"});",
+											"",
+											"pm.test(\"Resonse Test: User Reviews is an fetched\", function () {",
+											"    pm.expect(responseData.reviews.status).to.equal(200);",
+											"});",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{Token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{URL}}/users/my-profile",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"users",
+										"my-profile"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "Token",
+			"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY0ODIzMDk4ZDdiNDc4NDhkMGVmMTlkNiIsImlhdCI6MTY4NjI1Mzk5OSwiZXhwIjoxNjg3NDYzNTk5fQ.gopTAYJDNdJCje652xse9WYydH8hNcX_YPAaSthcH18"
+		},
+		{
+			"key": "coupons",
+			"value": ""
+		},
+		{
+			"key": "products",
+			"value": ""
+		},
+		{
+			"key": "banners",
+			"value": ""
+		}
+	]
+}
